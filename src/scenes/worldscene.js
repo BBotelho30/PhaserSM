@@ -60,6 +60,6 @@ export class WorldScene extends Phaser.Scene {
     }
 
     update() {
-
+        
     }
 }
