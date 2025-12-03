@@ -7,6 +7,14 @@ export class BootScene extends Phaser.Scene {
     preload() {
 
         this.load.image('fundo', 'assets/fundoInicio.png');
+
+        this.load.spritesheet('alien', 'assets/alien.png', { 
+            frameWidth: 32,  
+            frameHeight: 48 
+        });
+        
+        this.load.image('raio', 'assets/raio.png');
+
     }
 
     create() {
