@@ -54,7 +54,6 @@ export class GameScene extends Phaser.Scene {
         // Frame inicial (Frame 7)
         this.alien.setFrame(7); 
 
-        
         this.raios = this.physics.add.group({
             // Garante que os raios se movem e não são afetados pela gravidade
             runChildUpdate: true,
@@ -65,7 +64,7 @@ export class GameScene extends Phaser.Scene {
 
         this.velocidadeRaio = 400;
 
-        this.ultimaChaveRaio = 0;
+        this.ultimoRaio = 0;
 
         this.inimigos = this.physics.add.group({
             allowGravity: false 
@@ -97,7 +96,7 @@ export class GameScene extends Phaser.Scene {
         this.textoPontuacao = this.add.text(10, 10, 'Pontuação: 0', { fontSize: '25px', fill: '#ffffff' });
 
         this.vidas = 5,
-        this.textoVidas = this.add.text(750, 10, 'Vidas: 5', { fontSize: '25px', fill: '#ffffff' });
+        this.textoVidas = this.add.text(670, 10, 'Vidas: 5', { fontSize: '25px', fill: '#ffffff' });
 
         //Colisão entre alien e inimigos
         this.physics.add.collider(
@@ -148,11 +147,11 @@ export class GameScene extends Phaser.Scene {
             this.alien.setFrame(7); 
         }
 
-        if (this.teclaEspaco.isDown && this.time.now > this.ultimaChaveRaio) {
+        if (this.teclaEspaco.isDown && this.time.now > this.ultimoRaio) {
             this.dispararRaio();
             
             //Tempo do próximo disparo para 200 milissegundos no futuro (Fire Rate)
-            this.ultimaChaveRaio = this.time.now + 200; 
+            this.ultimoRaio = this.time.now + 200; 
         }
     
     }
@@ -192,13 +191,13 @@ export class GameScene extends Phaser.Scene {
         const inimigosAleatorio = Phaser.Math.RND.pick(arrayInimigos);
 
         // Margem fixa de segurança (30) para evitar que os pés sejam cortados
-        const margemSeguraFixa = 50; 
+        const margemFixa = 50; 
         
         // Posição X fora do ecrã à direita
         const xPos = larguraDoJogo + 15; 
         
         //Posição aleatória dentro das margens de segurança
-        const yPos = Phaser.Math.Between(margemSeguraFixa, alturaDoJogo - margemSeguraFixa);
+        const yPos = Phaser.Math.Between(margemFixa, alturaDoJogo - margemFixa);
 
         // Cria o inimigo usando a chave aleatória
         let inimigo = this.inimigos.get(xPos, yPos, inimigosAleatorio);
@@ -228,13 +227,12 @@ export class GameScene extends Phaser.Scene {
     }
 
     perderVida(alien, inimigo) {
+        inimigo.destroy(true);      
 
-        inimigo.destroy(true);
-        
         this.vidas -= 1;
         this.textoVidas.setText('Vidas: ' + this.vidas);
         if (this.vidas <= 0) {
-            this.scene.start('GameOver'); 
+            this.scene.start('GameLose'); 
         }
         }
 }

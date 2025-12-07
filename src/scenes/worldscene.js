@@ -6,10 +6,7 @@ export class WorldScene extends Phaser.Scene {
 
     preload() {
 
-        //imagem fundo
         this.load.image('imagemFundo', 'assets/fundoInicio.png');
-
-        //imagem botões
         this.load.image('botaoJogar', 'assets/jogar.png');    
         this.load.image('botaoRegras', 'assets/regras.png');
         this.load.image('thor', 'assets/thor.png');
@@ -28,11 +25,14 @@ export class WorldScene extends Phaser.Scene {
         this.fundo.displayWidth = larguraDoJogo;
         this.fundo.displayHeight = alturaDoJogo;
 
-        const yBotao = alturaDoJogo * 0.8; 
+        const yBotao = alturaDoJogo * 0.85; 
         
-        const escalaBotao = 0.33;
+        const escalaBotao = 0.30;
 
         const espacobotao = 75;
+
+        const escalaBotaoRato = 0.35;
+
 
         // Botão JOGAR 
         this.botaoJogar = this.add.image(
@@ -47,6 +47,15 @@ export class WorldScene extends Phaser.Scene {
             this.scene.start('GameScene'); 
         });
 
+        this.botaoJogar.on('pointerover', () => {
+            this.botaoJogar.setScale(escalaBotaoRato); // Aumenta a escala
+        });
+
+        // Quando o ponteiro sai da área do botão
+        this.botaoJogar.on('pointerout', () => {
+            this.botaoJogar.setScale(escalaBotao); // Volta à escala original
+        });
+
         // Botão REGRAS 
         this.botaoRegras = this.add.image(
             (larguraDoJogo / 2) + espacobotao, 
@@ -58,6 +67,15 @@ export class WorldScene extends Phaser.Scene {
 
         this.botaoRegras.on('pointerdown', () => {
             this.scene.start('Rules'); 
+        });
+
+        this.botaoRegras.on('pointerover', () => {
+            this.botaoRegras.setScale(escalaBotaoRato); // Aumenta a escala
+        });
+
+        // Quando o ponteiro sai da área do botão
+        this.botaoRegras.on('pointerout', () => {
+            this.botaoRegras.setScale(escalaBotao); // Volta à escala original
         });
     }
 

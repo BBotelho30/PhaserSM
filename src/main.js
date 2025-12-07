@@ -2,12 +2,12 @@ import { BootScene } from './scenes/bootscene.js';
 import { WorldScene } from './scenes/worldscene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { Rules } from './scenes/rules.js';
-import {GameOver} from './scenes/gameover.js';
+import {GameLose} from './scenes/gameLose.js';
 
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 900,
+    width: 800,
     height: 500,
     backgroundColor: '#000000',
     autoResize: true,
@@ -24,7 +24,7 @@ const config = {
         WorldScene,
         GameScene,
         Rules,
-        GameOver
+        GameLose
     ],
 
     scale: {

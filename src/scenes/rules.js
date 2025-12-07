@@ -24,7 +24,7 @@ export class Rules extends Phaser.Scene {
         //tamanho
         const escalaBotaoVoltar = 0.25;
         //tamanho ao passar o mouse
-        const escalaBotaoVoltarHover = 0.30;
+        const escalaBotaoVoltarRato = 0.30;
 
         this.botaoVoltar = this.add.image(
             larguraDoJogo * 0.15, 
@@ -35,7 +35,7 @@ export class Rules extends Phaser.Scene {
         .setScale(escalaBotaoVoltar); // Aplica a escala definida
         
         this.botaoVoltar.on('pointerover', () => {
-            this.botaoVoltar.setScale(escalaBotaoVoltarHover); // Aumenta a escala
+            this.botaoVoltar.setScale(escalaBotaoVoltarRato); // Aumenta a escala
         });
 
         // Quando o ponteiro sai da área do botão
