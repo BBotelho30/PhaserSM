@@ -39,6 +39,15 @@ export class GameLose extends Phaser.Scene {
         ).setOrigin(0.5);
 
 
+         
+        this.add.text(
+            larguraDoJogo / 2, 
+            alturaDoJogo / 2 + 50, 
+            'Para jogar novamente clique em Jogar, senao volte ao Menu', 
+            { fontSize: '15px', fill: '#ffffff', fontFamily: 'Arial Black' }
+        ).setOrigin(0.5);
+
+
         // Botão Menu
         this.botaoMenu = this.add.image(
             (larguraDoJogo / 2) + espacobotao, 
