@@ -12,6 +12,8 @@ export class WorldScene extends Phaser.Scene {
         //imagem botões
         this.load.image('botaoJogar', 'assets/jogar.png');    
         this.load.image('botaoRegras', 'assets/regras.png');
+        this.load.image('thor', 'assets/thor.png');
+
     }
 
     create() {

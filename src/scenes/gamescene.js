@@ -7,12 +7,17 @@ export class GameScene extends Phaser.Scene {
     preload() {
         this.load.image('Fundo', 'assets/fundo.png');
         
-        // Alteração 1: Carregar como Spritesheet com os valores 32x48
+        //spritesheet com os valores 32x48
         this.load.spritesheet('alien', 'assets/alien.png', { 
             frameWidth: 32, 
             frameHeight: 48 
         });
+
         this.load.image('raio', 'assets/raio.png');
+        this.load.image('god1', 'assets/god1.png');
+        this.load.image('god2', 'assets/god2.png');
+        this.load.image('god3', 'assets/god3.png');
+        this.load.image('god4', 'assets/god4.png');
     }
 
     create() {
@@ -62,14 +67,51 @@ export class GameScene extends Phaser.Scene {
 
         this.ultimaChaveRaio = 0;
 
-        
+        this.inimigos = this.physics.add.group({
+            allowGravity: false 
+        });
+
+
+        this.velocidadeInimigo = 150;
+
+        this.maxInimigos = 15;
+
+        //Fazer aparecer inimigos periodicamente
+        this.time.addEvent({
+            delay: 2500, //2.5seg 
+            callback: this.spawnInimigo, 
+            callbackScope: this, 
+            loop: true 
+        });
+
+        //colisão entre raios e inimigos
+        this.physics.add.collider(
+            this.raios,        
+            this.inimigos,     
+            this.acertouInimigo, // Função a chamar quando a colisão acontece
+            null,              // Função de callback de processamento (deixamos nulo)
+            this              // O 'scope' (contexto) da função
+        );
+
+        this.pontuacao = 0;
+        this.textoPontuacao = this.add.text(10, 10, 'Pontuação: 0', { fontSize: '25px', fill: '#ffffff' });
+
+        this.vidas = 5,
+        this.textoVidas = this.add.text(750, 10, 'Vidas: 5', { fontSize: '25px', fill: '#ffffff' });
+
+        //Colisão entre alien e inimigos
+        this.physics.add.collider(
+            this.alien, 
+            this.inimigos, 
+            this.perderVida, 
+            null, 
+            this);
 
     }
 
     update(){
 
         this.fundo.tilePositionX += 3; // Velocidade do movimento do fundo
-
 
         this.alien.body.setVelocity(0); // Parar o movimento do alien a cada frame
 
@@ -95,13 +137,13 @@ export class GameScene extends Phaser.Scene {
             animacao = 'down';
         }
         
-        // Alteração 5: Lógica de Animação
+        // Lógica de Animação
         if (animacao) {
             if (this.alien.anims.currentAnim?.key !== animacao) {
                 this.alien.anims.play(animacao);
             }
         } else {
-            // Estado Parado: Parar a animação e voltar ao Frame 7
+            //Parar a animação e voltar ao Frame 7
             this.alien.anims.stop(); 
             this.alien.setFrame(7); 
         }
@@ -109,7 +151,7 @@ export class GameScene extends Phaser.Scene {
         if (this.teclaEspaco.isDown && this.time.now > this.ultimaChaveRaio) {
             this.dispararRaio();
             
-            // Define o tempo do próximo disparo para 200 milissegundos no futuro (Fire Rate)
+            //Tempo do próximo disparo para 200 milissegundos no futuro (Fire Rate)
             this.ultimaChaveRaio = this.time.now + 200; 
         }
     
@@ -131,10 +173,68 @@ export class GameScene extends Phaser.Scene {
             // Aplica a velocidade vertical para o raio se mover para cima
             raio.body.velocity.x = this.velocidadeRaio; 
             
-            // Faz com que o raio seja destruído quando sair do ecrã, para não acumular
             raio.checkWorldBounds = true;
             raio.outOfBoundsKill = true;
         }
     }
+
+    spawnInimigo() {
     
+        // Verifica se o número máximo de inimigos ativos foi atingido
+        if (this.inimigos.countActive(true) >= this.maxInimigos) {
+            return; 
+        }
+
+        const larguraDoJogo = this.sys.game.config.width;
+        const alturaDoJogo = this.sys.game.config.height;
+
+        const arrayInimigos = ['god1', 'god2', 'god3', 'god4'];
+        const inimigosAleatorio = Phaser.Math.RND.pick(arrayInimigos);
+
+        // Margem fixa de segurança (30) para evitar que os pés sejam cortados
+        const margemSeguraFixa = 50; 
+        
+        // Posição X fora do ecrã à direita
+        const xPos = larguraDoJogo + 15; 
+        
+        //Posição aleatória dentro das margens de segurança
+        const yPos = Phaser.Math.Between(margemSeguraFixa, alturaDoJogo - margemSeguraFixa);
+
+        // Cria o inimigo usando a chave aleatória
+        let inimigo = this.inimigos.get(xPos, yPos, inimigosAleatorio);
+        
+        if (!inimigo) return; 
+
+    
+        inimigo.setActive(true);
+    
+        inimigo.setVisible(true);
+        
+        inimigo.setScale(0.4); 
+
+        // Define a velocidade para mover o inimigo para a esquerda
+        inimigo.body.setVelocityX(-this.velocidadeInimigo);
+        
+        inimigo.checkWorldBounds = true;
+        inimigo.outOfBoundsKill = true; 
+    }
+
+    acertouInimigo(raio, inimigo) {
+        inimigo.destroy(true); 
+        raio.destroy(true);    
+
+        this.pontuacao += 5; // Incrementa a pontuação em 10 pontos
+        this.textoPontuacao.setText('Pontuação: ' + this.pontuacao); // Atualiza o texto da pontuação
+    }
+
+    perderVida(alien, inimigo) {
+
+        inimigo.destroy(true);
+        
+        this.vidas -= 1;
+        this.textoVidas.setText('Vidas: ' + this.vidas);
+        if (this.vidas <= 0) {
+            this.scene.start('GameOver'); 
+        }
+        }
 }

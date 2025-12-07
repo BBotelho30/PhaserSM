@@ -2,6 +2,7 @@ import { BootScene } from './scenes/bootscene.js';
 import { WorldScene } from './scenes/worldscene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { Rules } from './scenes/rules.js';
+import {GameOver} from './scenes/gameover.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -22,7 +23,8 @@ const config = {
         BootScene,
         WorldScene,
         GameScene,
-        Rules
+        Rules,
+        GameOver
     ],
 
     scale: {
