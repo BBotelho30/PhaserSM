@@ -9,7 +9,6 @@ export class WorldScene extends Phaser.Scene {
         this.load.image('imagemFundo', 'assets/fundoInicio.png');
         this.load.image('botaoJogar', 'assets/jogar.png');    
         this.load.image('botaoRegras', 'assets/regras.png');
-        this.load.image('thor', 'assets/thor.png');
 
         this.load.audio('somBotao', 'assets/audio/botao.wav')
         

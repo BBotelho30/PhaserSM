@@ -7,7 +7,6 @@ export class GameScene extends Phaser.Scene {
     preload() {
         this.load.image('Fundo', 'assets/fundo.png');
         
-        //spritesheet com os valores 32x48
         this.load.spritesheet('alien', 'assets/alien.png', { 
             frameWidth: 32, 
             frameHeight: 48 
@@ -31,7 +30,7 @@ export class GameScene extends Phaser.Scene {
         const larguraDoJogo = this.sys.game.config.width; 
         const alturaDoJogo  = this.sys.game.config.height; 
 
-        // tileSprite faz com que o fundo seja repetido e movido.
+        // tileSprite faz o fundo de mova e repita
         this.fundo = this.add.tileSprite(0, 0, larguraDoJogo, alturaDoJogo, 'Fundo');
 
         //Define a origem do TileSprite para o canto superior esquerdo (0,0)
@@ -43,15 +42,15 @@ export class GameScene extends Phaser.Scene {
             'alien'
         );
 
-        this.alien.setCollideWorldBounds(true); // Impede que o alien saia do ecrã
+        this.alien.setCollideWorldBounds(true); // para o alien não sair da tela
         
-        this.alien.setScale(1.5); // Escala para o alienígena ser visível
+        this.alien.setScale(1.5); 
         
         this.teclas = this.input.keyboard.createCursorKeys(); //saber que as teclas foram pressionadas
 
-        this.velocidadeAlien = 220; //velocidade em pixels por segundo
+        this.velocidadeAlien = 220;
 
-        //Criação das Animações (Frames 0-11)
+        //Animações (Frames 0-11)
         this.anims.create({ 
             key: 'up', 
             frames: this.anims.generateFrameNumbers('alien', { frames: [0, 1, 2] }), 
@@ -110,8 +109,8 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(
             this.raios,        
             this.inimigos,     
-            this.acertouInimigo, // Função a chamar quando a colisão acontece
-            null,              // Função de callback de processamento (deixamos nulo)
+            this.acertouInimigo, 
+            null,              // Função de callback de processamento 
             this              // O 'scope' (contexto) da função
         );
 
@@ -130,8 +129,6 @@ export class GameScene extends Phaser.Scene {
             null, 
             this
         );
-
-
 
         //FAZER UM NIVEL 
         this.nivel = 1;
@@ -168,12 +165,7 @@ export class GameScene extends Phaser.Scene {
 
     }
 
-    shutdown() {
-        if (this.timerSpawn) { this.timerSpawn.destroy(); }
-        if (this.raios) this.raios.destroy(true);
-        if (this.raiosInimigos) this.raiosInimigos.destroy(true);
-        if (this.inimigos) this.inimigos.destroy(true);
-    }
+
 
     update(){
 
@@ -227,19 +219,21 @@ export class GameScene extends Phaser.Scene {
     
     }
 
+
     dispararRaio() {
-    let raio = this.raios.create(this.alien.x + 15, this.alien.y - 5, 'raio');
+    
+        let raio = this.raios.create(this.alien.x + 15, this.alien.y - 5, 'raio');
 
-    raio.setScale(0.5);
-    raio.body.velocity.x = this.velocidadeRaio;
+        raio.setScale(0.5);
+        raio.body.velocity.x = this.velocidadeRaio;
 
-    // Quando sair da tela, destruir
-    this.time.delayedCall(2000, () => {
-        if (raio && raio.active) raio.destroy();
-    });
+        // Quando sair da tela, destruir
+        this.time.delayedCall(2000, () => {
+            if (raio && raio.active) raio.destroy();
+        });
 
-    this.somDisparo.play();
-}
+        this.somDisparo.play();
+    }
 
 
 
@@ -249,7 +243,7 @@ export class GameScene extends Phaser.Scene {
         raio.setScale(0.5);
         raio.body.velocity.x = -this.velocidadeRaioInimigo;
 
-         // destruir depois de 2 segundos
+        // destruir depois de 2 segundos
         this.time.delayedCall(2000, () => {
             if (raio && raio.active) raio.destroy();
         });
@@ -259,32 +253,30 @@ export class GameScene extends Phaser.Scene {
 
     spawnInimigo() {
 
-    if (this.inimigos.countActive(true) >= this.maxInimigos) return;
+        if (this.inimigos.countActive(true) >= this.maxInimigos) return;
 
-    const largura = this.sys.game.config.width;
-    const altura = this.sys.game.config.height;
+        const largura = this.sys.game.config.width;
+        const altura = this.sys.game.config.height;
+        const inimigos = ['god1','god2','god3','god4'];
 
-    const arrayInimigos = ['god1', 'god2', 'god3', 'god4'];
-    const chave = Phaser.Math.RND.pick(arrayInimigos);
+        let inimigo = this.inimigos.create(
+            largura + 15,
+            Phaser.Math.Between(50, altura - 50),
+            Phaser.Math.RND.pick(inimigos)
+        );
 
-    let inimigo = this.inimigos.create(
-        largura + 15,
-        Phaser.Math.Between(50, altura - 50),
-        chave
-    );
+        inimigo.setScale(0.4);
+        inimigo.body.setVelocityX(-this.velocidadeInimigo);
 
-    inimigo.setScale(0.4);
-    inimigo.body.setVelocityX(-this.velocidadeInimigo);
-
-    // Nivel 3 = inimigo dispara
-    if (this.nivel === 3) {
-        inimigo.timerDisparo = this.time.addEvent({
+        // inimigo dispara apenas no nível 3
+        if (this.nivel === 3) this.time.addEvent({
             delay: 700,
-            callback: () => this.dispararRaioInimigo(inimigo),
-            loop: true
+            loop: true,
+            callback: () => this.dispararRaioInimigo(inimigo)
         });
     }
-}
+
+
 
 
     acertouInimigo(raio, inimigo) {
@@ -296,9 +288,10 @@ export class GameScene extends Phaser.Scene {
         inimigo.disableBody(true, true); 
         raio.disableBody(true, true);    
 
-        this.pontuacao += 5; // Incrementa a pontuação em 10 pontos
+        this.pontuacao += 5; 
         this.textoPontuacao.setText('Pontuação: ' + this.pontuacao); // Atualiza o texto da pontuação
     }
+
 
     acertouAlien(alien, objeto) {
         // O objeto que atingiu o alien (inimigo ou raio) é destruído
@@ -320,24 +313,24 @@ export class GameScene extends Phaser.Scene {
     let novoTempoSpawn = this.tempoSpawn;
     let novaVelocidade = this.velocidadeInimigo;
 
+    //Nivel 2
     if (this.nivel === 1) {
-        // TRANSITION PARA O NÍVEL 2 (70 pontos)
         this.nivel = 2; 
-        this.pontosProximoNivel = 170; // Objetivo do Nível 2
+        this.pontosProximoNivel = 170; 
         novaVelocidade = 220; 
         novoTempoSpawn = 1200; // Spawn mais rápido
         textoMensagem = 'NÍVEL 2!';
         
+    //Nivel 3    
     } else if (this.nivel === 2) {
-        // TRANSITION PARA O NÍVEL 3 (170 pontos)
+        
         this.nivel = 3; 
-        this.pontosProximoNivel = 270; // Objetivo do Nível 3
+        this.pontosProximoNivel = 270; 
         novaVelocidade = 250; 
         novoTempoSpawn = 1000; // Spawn mais rápido
         textoMensagem = 'NÍVEL 3!';
         
     } else if (this.nivel === 3) {
-        // Atingiu os pontos para ganhar
         this.scene.start('GameWin'); 
         return;
     }
@@ -368,7 +361,6 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setDepth(100);
 
-        // Remove a mensagem após 5 segundos
         this.time.delayedCall(5000, () => {
             mensagemNivel.destroy();
         }, [], this);
