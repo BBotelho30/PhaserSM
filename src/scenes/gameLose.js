@@ -12,6 +12,8 @@ export class GameLose extends Phaser.Scene {
     }
 
     create() {
+
+        
         const larguraDoJogo = this.sys.game.config.width;
         const alturaDoJogo = this.sys.game.config.height;
 
@@ -33,7 +35,7 @@ export class GameLose extends Phaser.Scene {
         // Título "PERDEU"
         this.add.text(
             larguraDoJogo / 2, 
-            alturaDoJogo / 2 - 130, 
+            alturaDoJogo / 2 - 110, 
             'PERDEU', 
             { fontSize: '50px', fill: '#FF0000', fontFamily: 'Arial Black' }
         ).setOrigin(0.5);
@@ -42,7 +44,7 @@ export class GameLose extends Phaser.Scene {
          
         this.add.text(
             larguraDoJogo / 2, 
-            alturaDoJogo / 2 + 90, 
+            alturaDoJogo / 2 + 5, 
             'Para jogar novamente clique em Jogar, senao volte ao Menu', 
             { fontSize: '20px', fill: '#ffffff', fontFamily: 'Arial Black' }
         ).setOrigin(0.5);
@@ -80,7 +82,8 @@ export class GameLose extends Phaser.Scene {
         .setScale(escalaBotao);
 
         this.botaoVoltarJogar.on('pointerdown', () => {
-            this.scene.start('GameScene'); 
+            this.scene.stop('GameScene');
+            this.scene.start('GameScene');
         });
 
         this.botaoVoltarJogar.on('pointerover', () => {

@@ -19,6 +19,9 @@ export class GameScene extends Phaser.Scene {
         this.load.image('god3', 'assets/god3.png');
         this.load.image('god4', 'assets/god4.png');
 
+        this.load.image('raio', 'assets/raio.png');
+        this.load.image('raio2', 'assets/raio2.png');
+
         this.load.audio('disparoSom', 'assets/audio/laser1.wav');
     }
 
@@ -127,13 +130,6 @@ export class GameScene extends Phaser.Scene {
             this
         );
 
-        //Colisão entre alien e inimigos (Ser atingido)
-        this.physics.add.collider(
-            this.alien, 
-            this.raiosInimigos, 
-            this.acertouAlien,
-            null, 
-            this);
 
 
         //FAZER UM NIVEL 
@@ -153,14 +149,30 @@ export class GameScene extends Phaser.Scene {
 
         //Raio do inimigo
         this.raiosInimigos = this.physics.add.group({ 
+            classType: Phaser.Physics.Arcade.Image,
             runChildUpdate: true,
             allowGravity: false,
         });
 
+
+        //Colisão entre alien e inimigos (Ser atingido)
+        this.physics.add.collider(
+            this.alien, 
+            this.raiosInimigos, 
+            this.acertouAlien,
+            null, 
+            this);
+
         this.velocidadeRaioInimigo = 400;
 
+    }
 
-
+    shutdown() {
+        // 🟢 LIMPEZA REFORÇADA: Garante que todos os timers são destruídos no fim da cena
+        if (this.timerSpawn) { this.timerSpawn.destroy(); }
+        if (this.raios) this.raios.destroy(true);
+        if (this.raiosInimigos) this.raiosInimigos.destroy(true);
+        if (this.inimigos) this.inimigos.destroy(true);
     }
 
     update(){
@@ -240,9 +252,13 @@ export class GameScene extends Phaser.Scene {
 
     dispararRaioInimigo(inimigo) {
         // Pega no primeiro raio 'inativo' ou cria um novo
-        let raio = this.raiosInimigos.get(inimigo.x - 20, inimigo.y, 'raio'); 
+        let raio = this.raiosInimigos.get(inimigo.x - 20, inimigo.y, 'raio2'); 
 
-        if (raio) {
+        if (!raio) {
+            raio = this.physics.add.image(inimigo.x - 20, inimigo.y, 'raio2');
+            this.raiosInimigos.add(raio);
+        }
+
             raio.setActive(true);
             raio.setVisible(true);
             raio.setScale(0.5); 
@@ -254,7 +270,7 @@ export class GameScene extends Phaser.Scene {
             raio.checkWorldBounds = true;
             raio.outOfBoundsKill = true;
             
-        }
+        
     }
 
     spawnInimigo() {
@@ -309,7 +325,8 @@ export class GameScene extends Phaser.Scene {
             });
             // Quando o inimigo é destruído (pelo jogador), o timer tem de ser destruído
             inimigo.on('destroy', () => {
-                if (inimigo.timerDisparo) inimigo.timerDisparo.destroy();
+                if (inimigo.timerDisparo) 
+                inimigo.timerDisparo.destroy();
             });
         }
     }
@@ -320,8 +337,8 @@ export class GameScene extends Phaser.Scene {
             inimigo.timerDisparo.destroy();
         }
 
-        inimigo.destroy(true); 
-        raio.destroy(true);    
+        inimigo.disableBody(true); 
+        raio.disableBody(true);    
 
         this.pontuacao += 5; // Incrementa a pontuação em 10 pontos
         this.textoPontuacao.setText('Pontuação: ' + this.pontuacao); // Atualiza o texto da pontuação
