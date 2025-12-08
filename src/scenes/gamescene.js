@@ -157,6 +157,8 @@ export class GameScene extends Phaser.Scene {
             allowGravity: false,
         });
 
+        this.velocidadeRaioInimigo = 400;
+
 
 
     }
@@ -297,9 +299,9 @@ export class GameScene extends Phaser.Scene {
 
 
         if (this.nivel === 3) {
-            // Usa um temporizador para cada inimigo disparar a cada 2 segundos
+            
             inimigo.timerDisparo = this.time.addEvent({
-                delay: 2000, 
+                delay: 500, // Dispara a cada 500 ms 
                 callback: this.dispararRaioInimigo,
                 callbackScope: this,
                 args: [inimigo], // Passa o inimigo como argumento
@@ -338,57 +340,52 @@ export class GameScene extends Phaser.Scene {
 
 
     passarNivel() {
-        const larguraDoJogo = this.sys.game.config.width;
-        const alturaDoJogo = this.sys.game.config.height;
+    const larguraDoJogo = this.sys.game.config.width;
+    const alturaDoJogo = this.sys.game.config.height;
 
-        let textoMensagem = '';
-        let novoTempoSpawn = this.tempoSpawn;
-        let novaVelocidade = this.velocidadeInimigo;
+    let textoMensagem = '';
+    let novoTempoSpawn = this.tempoSpawn;
+    let novaVelocidade = this.velocidadeInimigo;
 
-
-        if (this.nivel === 1) {
-            // TRANSITION PARA O NÍVEL 2 (70 pontos)
-            this.nivel = 2; 
-            this.pontosProximoNivel = 170; // Objetivo do Nível 2
-            
-            // Aumentar Dificuldade: Velocidade e Spawn
-            novaVelocidade = 220; 
-            novoTempoSpawn = 1200; 
-            textoMensagem = 'NÍVEL 2!';
-            
-        } else if (this.nivel === 2) {
-             // TRANSITION PARA O NÍVEL 3 (170 pontos)
-            this.nivel = 3; 
-            this.pontosProximoNivel = Infinity; // Nível final
-            
-            // Dificuldade: Velocidade e Spawn mantêm-se. Apenas os disparos dos inimigos aumentam (lógica no spawnInimigo).
-            // novaVelocidade = 220; (Mantém-se)
-            // novoTempoSpawn = 1200; (Mantém-se)
-            textoMensagem = 'NÍVEL 3';
-        } else {
-            return; // Já está no nível máximo
-        }
-
-        if(this.nivel === 2 && this.pontuacao == 270){
-            this.scene.start('GameWin');
-        } 
+    if (this.nivel === 1) {
+        // TRANSITION PARA O NÍVEL 2 (70 pontos)
+        this.nivel = 2; 
+        this.pontosProximoNivel = 170; // Objetivo do Nível 2
+        novaVelocidade = 220; 
+        novoTempoSpawn = 1200; // Spawn mais rápido
+        textoMensagem = 'NÍVEL 2!';
         
-        // Aplica os novos valores de dificuldade (apenas se mudarem)
-        this.velocidadeInimigo = novaVelocidade;
+    } else if (this.nivel === 2) {
+        // TRANSITION PARA O NÍVEL 3 (170 pontos)
+        this.nivel = 3; 
+        this.pontosProximoNivel = 270; // Objetivo do Nível 3
+        novaVelocidade = 250; 
+        novoTempoSpawn = 1000; // Spawn mais rápido
+        textoMensagem = 'NÍVEL 3!';
         
-        // 1. Destruir e Recriar o Timer (Se o tempo de spawn tiver mudado)
-        if (novoTempoSpawn !== this.tempoSpawn) {
-            this.tempoSpawn = novoTempoSpawn;
-            this.timerSpawn.destroy();
-            this.timerSpawn = this.time.addEvent({
-                delay: this.tempoSpawn, 
-                callback: this.spawnInimigo, 
-                callbackScope: this, 
-                loop: true 
-            });
-        }
-        
-        // 2. Mostrar a mensagem de transição de nível
+    } else if (this.nivel === 3) {
+        // Atingiu os pontos para ganhar
+        this.scene.start('GameWin'); 
+        return;
+    }
+
+    // Atualiza velocidade dos inimigos
+    this.velocidadeInimigo = novaVelocidade;
+
+    // Atualiza o timer de spawn se o tempo mudou
+    if (novoTempoSpawn !== this.tempoSpawn) {
+        this.tempoSpawn = novoTempoSpawn;
+        if (this.timerSpawn) this.timerSpawn.destroy();
+        this.timerSpawn = this.time.addEvent({
+            delay: this.tempoSpawn, 
+            callback: this.spawnInimigo, 
+            callbackScope: this, 
+            loop: true 
+        });
+    }
+
+    // Mostra a mensagem de transição de nível
+    if (textoMensagem) {
         const mensagemNivel = this.add.text(
             larguraDoJogo / 2, 
             alturaDoJogo / 2, 
@@ -398,8 +395,11 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setDepth(100);
 
+        // Remove a mensagem após 5 segundos
         this.time.delayedCall(5000, () => {
-            mensagemNivel.destroy(); 
+            mensagemNivel.destroy();
         }, [], this);
     }
+}
+
 }

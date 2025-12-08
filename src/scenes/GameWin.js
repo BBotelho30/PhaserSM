@@ -33,7 +33,7 @@ export class GameWin extends Phaser.Scene {
         // Título "PERDEU"
         this.add.text(
             larguraDoJogo / 2, 
-            alturaDoJogo / 2 - 130, 
+            alturaDoJogo / 2 - 180, 
             'Ganhou', 
             { fontSize: '50px', fill: '#17d523ff', fontFamily: 'Arial Black' }
         ).setOrigin(0.5);
@@ -42,7 +42,7 @@ export class GameWin extends Phaser.Scene {
          
         this.add.text(
             larguraDoJogo / 2, 
-            alturaDoJogo / 2 + 90, 
+            alturaDoJogo / 2 + 30, 
             'Para jogar novamente clique em Jogar, senao volte ao Menu', 
             { fontSize: '20px', fill: '#ffffff', fontFamily: 'Arial Black' }
         ).setOrigin(0.5);
