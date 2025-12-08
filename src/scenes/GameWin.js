@@ -9,11 +9,17 @@ export class GameWin extends Phaser.Scene {
         this.load.image('botaoMenu', 'assets/menu.png');
         this.load.image('botaoJogar', 'assets/jogar.png');
 
+        this.load.audio('somBotao', 'assets/audio/botao.wav')
+        this.load.audio('somGanhou', 'assets/audio/somGanha.wav')
+
+
     }
 
     create() {
 
+        let somBotao = this.sound.add('somBotao');
         
+        this.sound.play('somGanhou', { volume: 0.5 });
 
         const larguraDoJogo = this.sys.game.config.width;
         const alturaDoJogo = this.sys.game.config.height;
@@ -61,7 +67,7 @@ export class GameWin extends Phaser.Scene {
         .setScale(escalaBotao); 
 
         this.botaoMenu.on('pointerdown', () => {
-            this.scene.stop('GameScene');
+            somBotao.play();
             this.scene.start('WorldScene'); 
         });
 
@@ -84,6 +90,7 @@ export class GameWin extends Phaser.Scene {
         .setScale(escalaBotao);
 
         this.botaoVoltarJogar.on('pointerdown', () => {
+            somBotao.play();
             this.scene.start('GameScene');
 
         });

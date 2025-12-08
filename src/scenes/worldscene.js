@@ -11,9 +11,15 @@ export class WorldScene extends Phaser.Scene {
         this.load.image('botaoRegras', 'assets/regras.png');
         this.load.image('thor', 'assets/thor.png');
 
+        this.load.audio('somBotao', 'assets/audio/botao.wav')
+        
+
     }
 
     create() {
+
+        let somBotao = this.sound.add('somBotao');
+
        // Obter dimensões do canvas (320x480)
         const larguraDoJogo = this.sys.game.config.width;
         const alturaDoJogo  = this.sys.game.config.height; 
@@ -44,6 +50,7 @@ export class WorldScene extends Phaser.Scene {
         .setScale(escalaBotao); 
 
         this.botaoJogar.on('pointerdown', () => {
+            somBotao.play();
             this.scene.start('GameScene'); 
         });
 
@@ -66,6 +73,7 @@ export class WorldScene extends Phaser.Scene {
         .setScale(escalaBotao); 
 
         this.botaoRegras.on('pointerdown', () => {
+            somBotao.play();
             this.scene.start('Rules'); 
         });
 

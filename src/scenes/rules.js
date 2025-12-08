@@ -7,9 +7,13 @@ export class Rules extends Phaser.Scene {
     preload() {
         this.load.image('RegrasImagem', 'assets/regras2.png');
         this.load.image('botaoVoltar', 'assets/voltar.png')
+
+        this.load.audio('somBotao', 'assets/audio/botao.wav')
     }
 
     create() {
+        let somBotao = this.sound.add('somBotao');
+
         // Obter dimensões do canvas (320x480)
         const larguraDoJogo = this.sys.game.config.width; 
         const alturaDoJogo  = this.sys.game.config.height; 
@@ -45,6 +49,7 @@ export class Rules extends Phaser.Scene {
 
         // volta para o menu principal
         this.botaoVoltar.on('pointerdown', () => {
+            somBotao.play();
             this.scene.start('WorldScene'); 
         });
         

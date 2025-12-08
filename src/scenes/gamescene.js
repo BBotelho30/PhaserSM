@@ -23,6 +23,7 @@ export class GameScene extends Phaser.Scene {
         this.load.image('raio2', 'assets/raio2.png');
 
         this.load.audio('disparoSom', 'assets/audio/laser1.wav');
+        
     }
 
     create() {
@@ -168,7 +169,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     shutdown() {
-        // 🟢 LIMPEZA REFORÇADA: Garante que todos os timers são destruídos no fim da cena
         if (this.timerSpawn) { this.timerSpawn.destroy(); }
         if (this.raios) this.raios.destroy(true);
         if (this.raiosInimigos) this.raiosInimigos.destroy(true);
@@ -228,108 +228,64 @@ export class GameScene extends Phaser.Scene {
     }
 
     dispararRaio() {
-        // Pega no primeiro raio que está 'inativo' ou cria um novo se não houver
-        let raio = this.raios.get(this.alien.x + 15, this.alien.y - 5, 'raio');
+    let raio = this.raios.create(this.alien.x + 15, this.alien.y - 5, 'raio');
 
-        if (raio) {
-            raio.setActive(true);  // Torna o raio visível e ativo
-            raio.setVisible(true); // Torna o raio visível
-            
-            // Define a escala (ajuste se a imagem for muito grande)
-            raio.setScale(0.5); 
+    raio.setScale(0.5);
+    raio.body.velocity.x = this.velocidadeRaio;
 
-            raio.body.velocity.y = 0;
-            
-            // Aplica a velocidade vertical para o raio se mover para cima
-            raio.body.velocity.x = this.velocidadeRaio; 
-            
-            raio.checkWorldBounds = true;
-            raio.outOfBoundsKill = true;
+    // Quando sair da tela, destruir
+    this.time.delayedCall(2000, () => {
+        if (raio && raio.active) raio.destroy();
+    });
 
-            this.somDisparo.play();
-        }
-    }
+    this.somDisparo.play();
+}
+
+
 
     dispararRaioInimigo(inimigo) {
-        // Pega no primeiro raio 'inativo' ou cria um novo
-        let raio = this.raiosInimigos.get(inimigo.x - 20, inimigo.y, 'raio2'); 
+        let raio = this.raiosInimigos.create(inimigo.x - 20, inimigo.y, 'raio2');
 
-        if (!raio) {
-            raio = this.physics.add.image(inimigo.x - 20, inimigo.y, 'raio2');
-            this.raiosInimigos.add(raio);
-        }
+        raio.setScale(0.5);
+        raio.body.velocity.x = -this.velocidadeRaioInimigo;
 
-            raio.setActive(true);
-            raio.setVisible(true);
-            raio.setScale(0.5); 
-            
-            raio.body.velocity.y = 0;
-            // O raio move-se para a esquerda (na direção do alien)
-            raio.body.velocity.x = -this.velocidadeRaio; 
-            
-            raio.checkWorldBounds = true;
-            raio.outOfBoundsKill = true;
-            
-        
+         // destruir depois de 2 segundos
+        this.time.delayedCall(2000, () => {
+            if (raio && raio.active) raio.destroy();
+        });
     }
+
+
 
     spawnInimigo() {
-    
-        // Verifica se o número máximo de inimigos ativos foi atingido
-        if (this.inimigos.countActive(true) >= this.maxInimigos) {
-            return; 
-        }
 
-        const larguraDoJogo = this.sys.game.config.width;
-        const alturaDoJogo = this.sys.game.config.height;
+    if (this.inimigos.countActive(true) >= this.maxInimigos) return;
 
-        const arrayInimigos = ['god1', 'god2', 'god3', 'god4'];
-        const inimigosAleatorio = Phaser.Math.RND.pick(arrayInimigos);
+    const largura = this.sys.game.config.width;
+    const altura = this.sys.game.config.height;
 
-        // Margem fixa de segurança (30) para evitar que os pés sejam cortados
-        const margemFixa = 50; 
-        
-        // Posição X fora do ecrã à direita
-        const xPos = larguraDoJogo + 15; 
-        
-        //Posição aleatória dentro das margens de segurança
-        const yPos = Phaser.Math.Between(margemFixa, alturaDoJogo - margemFixa);
+    const arrayInimigos = ['god1', 'god2', 'god3', 'god4'];
+    const chave = Phaser.Math.RND.pick(arrayInimigos);
 
-        // Cria o inimigo usando a chave aleatória
-        let inimigo = this.inimigos.get(xPos, yPos, inimigosAleatorio);
-        
-        if (!inimigo) return; 
+    let inimigo = this.inimigos.create(
+        largura + 15,
+        Phaser.Math.Between(50, altura - 50),
+        chave
+    );
 
-    
-        inimigo.setActive(true);
-    
-        inimigo.setVisible(true);
-        
-        inimigo.setScale(0.4); 
+    inimigo.setScale(0.4);
+    inimigo.body.setVelocityX(-this.velocidadeInimigo);
 
-        // Define a velocidade para mover o inimigo para a esquerda
-        inimigo.body.setVelocityX(-this.velocidadeInimigo);
-        
-        inimigo.checkWorldBounds = true;
-        inimigo.outOfBoundsKill = true; 
-
-
-        if (this.nivel === 3) {
-            
-            inimigo.timerDisparo = this.time.addEvent({
-                delay: 500, // Dispara a cada 500 ms 
-                callback: this.dispararRaioInimigo,
-                callbackScope: this,
-                args: [inimigo], // Passa o inimigo como argumento
-                loop: true
-            });
-            // Quando o inimigo é destruído (pelo jogador), o timer tem de ser destruído
-            inimigo.on('destroy', () => {
-                if (inimigo.timerDisparo) 
-                inimigo.timerDisparo.destroy();
-            });
-        }
+    // Nivel 3 = inimigo dispara
+    if (this.nivel === 3) {
+        inimigo.timerDisparo = this.time.addEvent({
+            delay: 700,
+            callback: () => this.dispararRaioInimigo(inimigo),
+            loop: true
+        });
     }
+}
+
 
     acertouInimigo(raio, inimigo) {
 
@@ -337,8 +293,8 @@ export class GameScene extends Phaser.Scene {
             inimigo.timerDisparo.destroy();
         }
 
-        inimigo.disableBody(true); 
-        raio.disableBody(true);    
+        inimigo.disableBody(true, true); 
+        raio.disableBody(true, true);    
 
         this.pontuacao += 5; // Incrementa a pontuação em 10 pontos
         this.textoPontuacao.setText('Pontuação: ' + this.pontuacao); // Atualiza o texto da pontuação
