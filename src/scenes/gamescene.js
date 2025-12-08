@@ -102,7 +102,7 @@ export class GameScene extends Phaser.Scene {
 
         this.tempoSpawn = 3500; // Tempo inicial de spawn em milissegundos
         
-        //colisão entre raios e inimigos
+        //Raios do alien contra inimigos
         this.physics.add.collider(
             this.raios,        
             this.inimigos,     
@@ -118,11 +118,20 @@ export class GameScene extends Phaser.Scene {
         this.vidas = 5,
         this.textoVidas = this.add.text(670, 10, 'Vidas: 5', { fontSize: '25px', fill: '#ffffff' });
 
-        //Colisão entre alien e inimigos
+        //Colisão entre alien e inimigos (Tocar no Inimigo)
         this.physics.add.collider(
             this.alien, 
             this.inimigos, 
-            this.perderVida, 
+            this.acertouAlien,
+            null, 
+            this
+        );
+
+        //Colisão entre alien e inimigos (Ser atingido)
+        this.physics.add.collider(
+            this.alien, 
+            this.raiosInimigos, 
+            this.acertouAlien,
             null, 
             this);
 
@@ -141,6 +150,15 @@ export class GameScene extends Phaser.Scene {
 
         //Carregar o som do disparo
         this.somDisparo = this.sound.add('disparoSom');
+
+        //Raio do inimigo
+        this.raiosInimigos = this.physics.add.group({ 
+            runChildUpdate: true,
+            allowGravity: false,
+        });
+
+
+
     }
 
     update(){
@@ -189,7 +207,7 @@ export class GameScene extends Phaser.Scene {
             this.ultimoRaio = this.time.now + 200; 
         }
 
-        if (this.pontuacao >= this.pontosProximoNivel && this.nivel === 1) {
+        if (this.pontuacao >= this.pontosProximoNivel && this.pontosProximoNivel !== Infinity) {
             this.passarNivel();
         }
     
@@ -215,6 +233,25 @@ export class GameScene extends Phaser.Scene {
             raio.outOfBoundsKill = true;
 
             this.somDisparo.play();
+        }
+    }
+
+    dispararRaioInimigo(inimigo) {
+        // Pega no primeiro raio 'inativo' ou cria um novo
+        let raio = this.raiosInimigos.get(inimigo.x - 20, inimigo.y, 'raio'); 
+
+        if (raio) {
+            raio.setActive(true);
+            raio.setVisible(true);
+            raio.setScale(0.5); 
+            
+            raio.body.velocity.y = 0;
+            // O raio move-se para a esquerda (na direção do alien)
+            raio.body.velocity.x = -this.velocidadeRaio; 
+            
+            raio.checkWorldBounds = true;
+            raio.outOfBoundsKill = true;
+            
         }
     }
 
@@ -257,9 +294,30 @@ export class GameScene extends Phaser.Scene {
         
         inimigo.checkWorldBounds = true;
         inimigo.outOfBoundsKill = true; 
+
+
+        if (this.nivel === 3) {
+            // Usa um temporizador para cada inimigo disparar a cada 2 segundos
+            inimigo.timerDisparo = this.time.addEvent({
+                delay: 2000, 
+                callback: this.dispararRaioInimigo,
+                callbackScope: this,
+                args: [inimigo], // Passa o inimigo como argumento
+                loop: true
+            });
+            // Quando o inimigo é destruído (pelo jogador), o timer tem de ser destruído
+            inimigo.on('destroy', () => {
+                if (inimigo.timerDisparo) inimigo.timerDisparo.destroy();
+            });
+        }
     }
 
     acertouInimigo(raio, inimigo) {
+
+        if(inimigo.timerDisparo) {
+            inimigo.timerDisparo.destroy();
+        }
+
         inimigo.destroy(true); 
         raio.destroy(true);    
 
@@ -267,49 +325,79 @@ export class GameScene extends Phaser.Scene {
         this.textoPontuacao.setText('Pontuação: ' + this.pontuacao); // Atualiza o texto da pontuação
     }
 
-    perderVida(alien, inimigo) {
-        inimigo.destroy(true);      
+    acertouAlien(alien, objeto) {
+        // O objeto que atingiu o alien (inimigo ou raio) é destruído
+        objeto.destroy(true);      
 
-        this.vidas -= 1;
+        this.vidas -= 1; // O alien perde 1 vida
         this.textoVidas.setText('Vidas: ' + this.vidas);
         if (this.vidas <= 0) {
             this.scene.start('GameLose'); 
         }
-        }
+    }
 
 
-        passarNivel() {
-        this.nivel = 2; // Passa para o nível 2
-        this.pontosProximoNivel = Infinity; 
-
-        // Duplicar a dificuldade
-        this.velocidadeInimigo *= 1; 
-        this.tempoSpawn /= 6; 
-
-        // Atualizar o temporizador de spawn com a nova frequência
-        this.timerSpawn.destroy(); // Destrói o timer antigo
-
-        this.timerSpawn = this.time.addEvent({
-            delay: this.tempoSpawn,
-            callback: this.spawnInimigo, 
-            callbackScope: this, 
-            loop: true 
-        });
-
+    passarNivel() {
         const larguraDoJogo = this.sys.game.config.width;
         const alturaDoJogo = this.sys.game.config.height;
 
-        // Cria a mensagem e guarda-a numa variável
+        let textoMensagem = '';
+        let novoTempoSpawn = this.tempoSpawn;
+        let novaVelocidade = this.velocidadeInimigo;
+
+
+        if (this.nivel === 1) {
+            // TRANSITION PARA O NÍVEL 2 (70 pontos)
+            this.nivel = 2; 
+            this.pontosProximoNivel = 170; // Objetivo do Nível 2
+            
+            // Aumentar Dificuldade: Velocidade e Spawn
+            novaVelocidade = 220; 
+            novoTempoSpawn = 1200; 
+            textoMensagem = 'NÍVEL 2!';
+            
+        } else if (this.nivel === 2) {
+             // TRANSITION PARA O NÍVEL 3 (170 pontos)
+            this.nivel = 3; 
+            this.pontosProximoNivel = Infinity; // Nível final
+            
+            // Dificuldade: Velocidade e Spawn mantêm-se. Apenas os disparos dos inimigos aumentam (lógica no spawnInimigo).
+            // novaVelocidade = 220; (Mantém-se)
+            // novoTempoSpawn = 1200; (Mantém-se)
+            textoMensagem = 'NÍVEL 3';
+        } else {
+            return; // Já está no nível máximo
+        }
+
+        if(this.nivel === 2 && this.pontuacao == 270){
+            this.scene.start('GameWin');
+        } 
+        
+        // Aplica os novos valores de dificuldade (apenas se mudarem)
+        this.velocidadeInimigo = novaVelocidade;
+        
+        // 1. Destruir e Recriar o Timer (Se o tempo de spawn tiver mudado)
+        if (novoTempoSpawn !== this.tempoSpawn) {
+            this.tempoSpawn = novoTempoSpawn;
+            this.timerSpawn.destroy();
+            this.timerSpawn = this.time.addEvent({
+                delay: this.tempoSpawn, 
+                callback: this.spawnInimigo, 
+                callbackScope: this, 
+                loop: true 
+            });
+        }
+        
+        // 2. Mostrar a mensagem de transição de nível
         const mensagemNivel = this.add.text(
             larguraDoJogo / 2, 
             alturaDoJogo / 2, 
-            'NÍVEL 2!', 
-            { fontSize: '40px', fill: '#00ff00' }
+            textoMensagem, 
+            { fontSize: '35px', fill: '#1eff00ff' }
         )
         .setOrigin(0.5)
         .setDepth(100);
 
-        // Usar delayedCall para destruir a mensagem após 5 segundos 
         this.time.delayedCall(5000, () => {
             mensagemNivel.destroy(); 
         }, [], this);

@@ -3,6 +3,7 @@ import { WorldScene } from './scenes/worldscene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { Rules } from './scenes/rules.js';
 import {GameLose} from './scenes/gameLose.js';
+import {GameWin} from './scenes/GameWin.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -24,7 +25,8 @@ const config = {
         WorldScene,
         GameScene,
         Rules,
-        GameLose
+        GameLose,
+        GameWin
     ],
 
     scale: {
