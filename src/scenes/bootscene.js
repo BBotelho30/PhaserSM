@@ -16,6 +16,9 @@ export class BootScene extends Phaser.Scene {
         this.load.image('raio', 'assets/raio.png');
         this.load.image('god1', 'assets/god1.png');
 
+        this.load.audio('disparoSom', 'assets/audio/laser1.wav');
+
+
     }
 
     create() {

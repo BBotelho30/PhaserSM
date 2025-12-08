@@ -18,6 +18,8 @@ export class GameScene extends Phaser.Scene {
         this.load.image('god2', 'assets/god2.png');
         this.load.image('god3', 'assets/god3.png');
         this.load.image('god4', 'assets/god4.png');
+
+        this.load.audio('disparoSom', 'assets/audio/laser1.wav');
     }
 
     create() {
@@ -128,7 +130,7 @@ export class GameScene extends Phaser.Scene {
         //FAZER UM NIVEL 
         this.nivel = 1;
         this.pontosProximoNivel = 70;
-        this.temposSpawn = 3500;
+        this.temposSpawn = 2000;
 
         this.timerSpawn = this.time.addEvent({
             delay: this.temposSpawn,
@@ -136,6 +138,9 @@ export class GameScene extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        //Carregar o som do disparo
+        this.somDisparo = this.sound.add('disparoSom');
     }
 
     update(){
@@ -208,6 +213,8 @@ export class GameScene extends Phaser.Scene {
             
             raio.checkWorldBounds = true;
             raio.outOfBoundsKill = true;
+
+            this.somDisparo.play();
         }
     }
 
@@ -276,8 +283,8 @@ export class GameScene extends Phaser.Scene {
         this.pontosProximoNivel = Infinity; 
 
         // Duplicar a dificuldade
-        this.velocidadeInimigo *= 2; 
-        this.tempoSpawn /= 5; 
+        this.velocidadeInimigo *= 1; 
+        this.tempoSpawn /= 6; 
 
         // Atualizar o temporizador de spawn com a nova frequência
         this.timerSpawn.destroy(); // Destrói o timer antigo
