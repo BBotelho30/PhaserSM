@@ -15,7 +15,7 @@ export class WorldScene extends Phaser.Scene {
 
     create() {
        // Obter dimensões do canvas (320x480)
-        const larguraDoJogo = this.sys.game.config.width; 
+        const larguraDoJogo = this.sys.game.config.width;
         const alturaDoJogo  = this.sys.game.config.height; 
 
         // Adicionar a imagem no centro do ecrã (160, 240)

@@ -46,10 +46,34 @@ export class GameScene extends Phaser.Scene {
         this.velocidadeAlien = 220; //velocidade em pixels por segundo
 
         //Criação das Animações (Frames 0-11)
-        this.anims.create({ key: 'up', frames: this.anims.generateFrameNumbers('alien', { frames: [0, 1, 2] }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'right', frames: this.anims.generateFrameNumbers('alien', { frames: [3, 4, 5] }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'down', frames: this.anims.generateFrameNumbers('alien', { frames: [6, 7, 8] }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'left', frames: this.anims.generateFrameNumbers('alien', { frames: [9, 10, 11] }), frameRate: 10, repeat: -1 });
+        this.anims.create({ 
+            key: 'up', 
+            frames: this.anims.generateFrameNumbers('alien', { frames: [0, 1, 2] }), 
+            frameRate: 10, 
+            repeat: -1 
+        });
+        
+        this.anims.create({ 
+            key: 'right', 
+            frames: this.anims.generateFrameNumbers('alien', { frames: [3, 4, 5] }), 
+            frameRate: 10, 
+            repeat: -1 
+        });
+
+
+        this.anims.create({ 
+            key: 'down', 
+            frames: this.anims.generateFrameNumbers('alien', { frames: [6, 7, 8] }), 
+            frameRate: 10, 
+            repeat: -1 
+        });
+
+        this.anims.create({ 
+            key: 'left', 
+            frames: this.anims.generateFrameNumbers('alien', { frames: [9, 10, 11] }), 
+            frameRate: 10, 
+            repeat: -1 
+        });
         
         // Frame inicial (Frame 7)
         this.alien.setFrame(7); 
@@ -70,19 +94,12 @@ export class GameScene extends Phaser.Scene {
             allowGravity: false 
         });
 
-
         this.velocidadeInimigo = 150;
 
-        this.maxInimigos = 15;
+        this.maxInimigos = 50;
 
-        //Fazer aparecer inimigos periodicamente
-        this.time.addEvent({
-            delay: 2500, //2.5seg 
-            callback: this.spawnInimigo, 
-            callbackScope: this, 
-            loop: true 
-        });
-
+        this.tempoSpawn = 3500; // Tempo inicial de spawn em milissegundos
+        
         //colisão entre raios e inimigos
         this.physics.add.collider(
             this.raios,        
@@ -91,6 +108,7 @@ export class GameScene extends Phaser.Scene {
             null,              // Função de callback de processamento (deixamos nulo)
             this              // O 'scope' (contexto) da função
         );
+
 
         this.pontuacao = 0;
         this.textoPontuacao = this.add.text(10, 10, 'Pontuação: 0', { fontSize: '25px', fill: '#ffffff' });
@@ -106,6 +124,18 @@ export class GameScene extends Phaser.Scene {
             null, 
             this);
 
+
+        //FAZER UM NIVEL 
+        this.nivel = 1;
+        this.pontosProximoNivel = 70;
+        this.temposSpawn = 3500;
+
+        this.timerSpawn = this.time.addEvent({
+            delay: this.temposSpawn,
+            callback: this.spawnInimigo,
+            callbackScope: this,
+            loop: true
+        });
     }
 
     update(){
@@ -152,6 +182,10 @@ export class GameScene extends Phaser.Scene {
             
             //Tempo do próximo disparo para 200 milissegundos no futuro (Fire Rate)
             this.ultimoRaio = this.time.now + 200; 
+        }
+
+        if (this.pontuacao >= this.pontosProximoNivel && this.nivel === 1) {
+            this.passarNivel();
         }
     
     }
@@ -235,4 +269,42 @@ export class GameScene extends Phaser.Scene {
             this.scene.start('GameLose'); 
         }
         }
+
+
+        passarNivel() {
+        this.nivel = 2; // Passa para o nível 2
+        this.pontosProximoNivel = Infinity; 
+
+        // Duplicar a dificuldade
+        this.velocidadeInimigo *= 2; 
+        this.tempoSpawn /= 5; 
+
+        // Atualizar o temporizador de spawn com a nova frequência
+        this.timerSpawn.destroy(); // Destrói o timer antigo
+
+        this.timerSpawn = this.time.addEvent({
+            delay: this.tempoSpawn,
+            callback: this.spawnInimigo, 
+            callbackScope: this, 
+            loop: true 
+        });
+
+        const larguraDoJogo = this.sys.game.config.width;
+        const alturaDoJogo = this.sys.game.config.height;
+
+        // Cria a mensagem e guarda-a numa variável
+        const mensagemNivel = this.add.text(
+            larguraDoJogo / 2, 
+            alturaDoJogo / 2, 
+            'NÍVEL 2!', 
+            { fontSize: '40px', fill: '#00ff00' }
+        )
+        .setOrigin(0.5)
+        .setDepth(100);
+
+        // Usar delayedCall para destruir a mensagem após 5 segundos 
+        this.time.delayedCall(5000, () => {
+            mensagemNivel.destroy(); 
+        }, [], this);
+    }
 }
